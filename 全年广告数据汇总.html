@@ -1,0 +1,649 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV文件合并工具</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f7fa;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eaeaea;
+        }
+        
+        .description {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        
+        .upload-section {
+            margin-bottom: 30px;
+        }
+        
+        .file-input {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            border: 2px dashed #3498db;
+            border-radius: 8px;
+            background-color: #f8fafc;
+            text-align: center;
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .file-input:hover {
+            border-color: #2980b9;
+            background-color: #ecf0f1;
+        }
+        
+        .selected-files {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .file-list {
+            list-style: none;
+            margin-top: 10px;
+        }
+        
+        .file-item {
+            padding: 8px 12px;
+            background-color: white;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            border: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .file-name {
+            font-weight: 500;
+            color: #2c3e50;
+        }
+        
+        .file-size {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .merge-btn {
+            background-color: #3498db;
+            color: white;
+        }
+        
+        .merge-btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .download-btn {
+            background-color: #2ecc71;
+            color: white;
+        }
+        
+        .download-btn:hover {
+            background-color: #27ae60;
+        }
+        
+        .reset-btn {
+            background-color: #e74c3c;
+            color: white;
+        }
+        
+        .reset-btn:hover {
+            background-color: #c0392b;
+        }
+        
+        .preview-section {
+            margin-top: 30px;
+        }
+        
+        .section-title {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eaeaea;
+            font-size: 20px;
+        }
+        
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 14px;
+            overflow-x: auto;
+            display: block;
+        }
+        
+        .preview-table th {
+            background-color: #2c3e50;
+            color: white;
+            padding: 12px 8px;
+            text-align: left;
+            position: sticky;
+            top: 0;
+            font-weight: 500;
+        }
+        
+        .preview-table td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #e0e0e0;
+            white-space: nowrap;
+        }
+        
+        .preview-table tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+        
+        .preview-table tr:hover {
+            background-color: #ecf0f1;
+        }
+        
+        .status {
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .status.success {
+            background-color: #d5f4e6;
+            color: #27ae60;
+            border-left: 4px solid #2ecc71;
+            display: block;
+        }
+        
+        .status.error {
+            background-color: #fde8e7;
+            color: #e74c3c;
+            border-left: 4px solid #e74c3c;
+            display: block;
+        }
+        
+        .status.info {
+            background-color: #e8f4fd;
+            color: #3498db;
+            border-left: 4px solid #3498db;
+            display: block;
+        }
+        
+        .instructions {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 6px;
+            margin-top: 30px;
+            border-left: 4px solid #3498db;
+        }
+        
+        .instructions h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .instructions ol {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+        
+        .instructions li {
+            margin-bottom: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+            }
+            
+            button {
+                width: 100%;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>CSV文件合并工具</h1>
+        
+        <div class="description">
+            上传多个CSV文件，按照文件名顺序合并为一个文件
+        </div>
+        
+        <div class="upload-section">
+            <label class="file-input" for="csv-files">
+                点击这里选择多个CSV文件（支持多选）
+                <input type="file" id="csv-files" accept=".csv" multiple style="display: none;">
+            </label>
+            
+            <div id="selected-files" class="selected-files" style="display: none;">
+                <strong>已选择的文件：</strong>
+                <ul id="file-list" class="file-list"></ul>
+            </div>
+        </div>
+        
+        <div id="status" class="status"></div>
+        
+        <div class="controls">
+            <button id="merge-btn" class="merge-btn">合并CSV文件</button>
+            <button id="download-btn" class="download-btn" disabled>下载合并后的文件</button>
+            <button id="reset-btn" class="reset-btn">重置</button>
+        </div>
+        
+        <div class="preview-section">
+            <h3 class="section-title">合并结果预览（前50行）</h3>
+            <div id="preview-container" style="overflow-x: auto;">
+                <table id="preview-table" class="preview-table"></table>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <h3>使用说明：</h3>
+            <ol>
+                <li>点击"选择文件"按钮，选择要合并的CSV文件（可多选）</li>
+                <li>点击"合并CSV文件"按钮，系统将按照文件名顺序合并所有文件</li>
+                <li>合并完成后，可以预览合并结果，然后点击"下载合并后的文件"按钮下载</li>
+                <li>点击"重置"按钮可以清除所有数据，重新开始</li>
+                <li><strong>注意：</strong>所有CSV文件必须有相同的列结构才能正确合并</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // 全局变量
+        let csvFiles = [];
+        let mergedData = [];
+        let mergedHeaders = [];
+        
+        // DOM元素
+        const fileInput = document.getElementById('csv-files');
+        const fileListElement = document.getElementById('file-list');
+        const selectedFilesDiv = document.getElementById('selected-files');
+        const mergeBtn = document.getElementById('merge-btn');
+        const downloadBtn = document.getElementById('download-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const previewTable = document.getElementById('preview-table');
+        const statusDiv = document.getElementById('status');
+        
+        // 文件选择事件
+        fileInput.addEventListener('change', function(e) {
+            csvFiles = Array.from(e.target.files);
+            
+            if (csvFiles.length > 0) {
+                // 按文件名排序
+                csvFiles.sort((a, b) => a.name.localeCompare(b.name));
+                
+                // 显示已选择的文件
+                displaySelectedFiles();
+                selectedFilesDiv.style.display = 'block';
+                
+                // 更新状态
+                showStatus(`已选择 ${csvFiles.length} 个CSV文件，已按文件名排序`, 'info');
+                
+                // 启用合并按钮
+                mergeBtn.disabled = false;
+            } else {
+                selectedFilesDiv.style.display = 'none';
+                mergeBtn.disabled = true;
+            }
+            
+            // 禁用下载按钮，清空预览
+            downloadBtn.disabled = true;
+            previewTable.innerHTML = '';
+        });
+        
+        // 显示已选择的文件
+        function displaySelectedFiles() {
+            fileListElement.innerHTML = '';
+            
+            csvFiles.forEach((file, index) => {
+                const li = document.createElement('li');
+                li.className = 'file-item';
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.className = 'file-name';
+                nameSpan.textContent = `${index + 1}. ${file.name}`;
+                
+                const sizeSpan = document.createElement('span');
+                sizeSpan.className = 'file-size';
+                sizeSpan.textContent = formatFileSize(file.size);
+                
+                li.appendChild(nameSpan);
+                li.appendChild(sizeSpan);
+                fileListElement.appendChild(li);
+            });
+        }
+        
+        // 格式化文件大小
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' bytes';
+            else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+            else return (bytes / 1048576).toFixed(1) + ' MB';
+        }
+        
+        // 显示状态信息
+        function showStatus(message, type = 'info') {
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+        }
+        
+        // 解析CSV文件
+        function parseCSV(text) {
+            const rows = [];
+            let currentRow = [];
+            let currentField = '';
+            let insideQuotes = false;
+            
+            for (let i = 0; i < text.length; i++) {
+                const char = text[i];
+                
+                if (char === '"') {
+                    // 处理引号内的内容
+                    if (insideQuotes && text[i + 1] === '"') {
+                        // 双引号转义
+                        currentField += '"';
+                        i++;
+                    } else {
+                        insideQuotes = !insideQuotes;
+                    }
+                } else if (char === ',' && !insideQuotes) {
+                    // 字段结束
+                    currentRow.push(currentField);
+                    currentField = '';
+                } else if (char === '\n' && !insideQuotes) {
+                    // 行结束
+                    currentRow.push(currentField);
+                    rows.push(currentRow);
+                    currentRow = [];
+                    currentField = '';
+                } else if (char === '\r') {
+                    // 忽略回车符
+                    continue;
+                } else {
+                    currentField += char;
+                }
+            }
+            
+            // 处理最后一行
+            if (currentField !== '' || currentRow.length > 0) {
+                currentRow.push(currentField);
+                rows.push(currentRow);
+            }
+            
+            return rows;
+        }
+        
+        // 合并CSV文件
+        async function mergeCSVFiles() {
+            if (csvFiles.length === 0) {
+                showStatus('请先选择要合并的CSV文件', 'error');
+                return;
+            }
+            
+            showStatus('正在合并文件，请稍候...', 'info');
+            mergeBtn.disabled = true;
+            
+            try {
+                mergedData = [];
+                mergedHeaders = [];
+                
+                // 按顺序处理每个文件
+                for (let i = 0; i < csvFiles.length; i++) {
+                    const file = csvFiles[i];
+                    
+                    // 读取文件内容
+                    const text = await readFileAsText(file);
+                    
+                    // 解析CSV
+                    const rows = parseCSV(text);
+                    
+                    if (rows.length === 0) {
+                        console.warn(`文件 ${file.name} 为空或格式不正确`);
+                        continue;
+                    }
+                    
+                    // 第一个文件的表头作为合并文件的表头
+                    if (i === 0) {
+                        mergedHeaders = rows[0];
+                        // 添加源文件名列
+                        mergedHeaders.push('Source_File');
+                        
+                        // 添加第一行数据（包含源文件名）
+                        for (let j = 1; j < rows.length; j++) {
+                            const row = rows[j];
+                            // 确保行长度与表头一致
+                            while (row.length < mergedHeaders.length - 1) {
+                                row.push('');
+                            }
+                            row.push(file.name);
+                            mergedData.push(row);
+                        }
+                    } else {
+                        // 检查后续文件的表头是否与第一个文件一致
+                        const currentHeaders = rows[0];
+                        const headersMatch = currentHeaders.length === mergedHeaders.length - 1;
+                        
+                        if (!headersMatch) {
+                            console.warn(`文件 ${file.name} 的列数与第一个文件不匹配`);
+                        }
+                        
+                        // 添加数据行（包含源文件名）
+                        for (let j = 1; j < rows.length; j++) {
+                            const row = rows[j];
+                            // 确保行长度与表头一致
+                            while (row.length < mergedHeaders.length - 1) {
+                                row.push('');
+                            }
+                            row.push(file.name);
+                            mergedData.push(row);
+                        }
+                    }
+                }
+                
+                // 显示合并结果
+                showStatus(`成功合并了 ${csvFiles.length} 个文件，共 ${mergedData.length} 行数据`, 'success');
+                previewMergedData();
+                
+                // 启用下载按钮
+                downloadBtn.disabled = false;
+                
+            } catch (error) {
+                console.error('合并文件时出错:', error);
+                showStatus(`合并文件时出错: ${error.message}`, 'error');
+            } finally {
+                mergeBtn.disabled = false;
+            }
+        }
+        
+        // 读取文件为文本
+        function readFileAsText(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.onerror = (e) => reject(new Error('无法读取文件'));
+                reader.readAsText(file);
+            });
+        }
+        
+        // 预览合并后的数据
+        function previewMergedData() {
+            if (mergedData.length === 0) {
+                previewTable.innerHTML = '<tr><td colspan="10" style="text-align: center;">暂无数据</td></tr>';
+                return;
+            }
+            
+            // 清空表格
+            previewTable.innerHTML = '';
+            
+            // 创建表头
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            
+            mergedHeaders.forEach(header => {
+                const th = document.createElement('th');
+                th.textContent = header;
+                headerRow.appendChild(th);
+            });
+            
+            thead.appendChild(headerRow);
+            previewTable.appendChild(thead);
+            
+            // 创建表格主体
+            const tbody = document.createElement('tbody');
+            
+            // 只显示前50行作为预览
+            const previewRows = mergedData.slice(0, 50);
+            
+            previewRows.forEach(row => {
+                const tr = document.createElement('tr');
+                
+                row.forEach(cell => {
+                    const td = document.createElement('td');
+                    td.textContent = cell;
+                    tr.appendChild(td);
+                });
+                
+                tbody.appendChild(tr);
+            });
+            
+            previewTable.appendChild(tbody);
+            
+            // 如果数据超过50行，显示提示
+            if (mergedData.length > 50) {
+                const tr = document.createElement('tr');
+                const td = document.createElement('td');
+                td.colSpan = mergedHeaders.length;
+                td.textContent = `... 还有 ${mergedData.length - 50} 行数据未显示`;
+                td.style.textAlign = 'center';
+                td.style.fontStyle = 'italic';
+                td.style.color = '#7f8c8d';
+                tr.appendChild(td);
+                tbody.appendChild(tr);
+            }
+        }
+        
+        // 下载合并后的文件
+        function downloadMergedFile() {
+            if (mergedData.length === 0) {
+                showStatus('没有可下载的数据', 'error');
+                return;
+            }
+            
+            // 构建CSV内容
+            let csvContent = mergedHeaders.map(header => `"${header}"`).join(',') + '\n';
+            
+            mergedData.forEach(row => {
+                const escapedRow = row.map(cell => {
+                    // 转义引号和换行符
+                    const cellStr = String(cell);
+                    if (cellStr.includes('"') || cellStr.includes(',') || cellStr.includes('\n')) {
+                        return '"' + cellStr.replace(/"/g, '""') + '"';
+                    }
+                    return cellStr;
+                });
+                
+                csvContent += escapedRow.join(',') + '\n';
+            });
+            
+            // 创建下载链接
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `merged_${new Date().toISOString().slice(0, 10)}.csv`;
+            
+            // 触发下载
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // 清理URL对象
+            setTimeout(() => URL.revokeObjectURL(url), 100);
+            
+            showStatus('文件下载已开始', 'success');
+        }
+        
+        // 重置
+        function resetAll() {
+            csvFiles = [];
+            mergedData = [];
+            mergedHeaders = [];
+            
+            fileInput.value = '';
+            fileListElement.innerHTML = '';
+            selectedFilesDiv.style.display = 'none';
+            previewTable.innerHTML = '';
+            statusDiv.className = 'status';
+            statusDiv.textContent = '';
+            
+            mergeBtn.disabled = true;
+            downloadBtn.disabled = true;
+            
+            showStatus('已重置，可以重新选择文件', 'info');
+        }
+        
+        // 事件监听
+        mergeBtn.addEventListener('click', mergeCSVFiles);
+        downloadBtn.addEventListener('click', downloadMergedFile);
+        resetBtn.addEventListener('click', resetAll);
+        
+        // 初始化
+        showStatus('请选择要合并的CSV文件', 'info');
+    </script>
+</body>
+</html>
